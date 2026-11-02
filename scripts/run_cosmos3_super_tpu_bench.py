@@ -560,13 +560,12 @@ def run_child_torchtpu_mot_worker(
                 vcs = [torch.randn((bsz, n_kv_heads, ctx_len, head_dim), device=o["dev"], dtype=torch.bfloat16) * 0.02 for o in dp_ops]
                 txs = [x[:, :1, :].contiguous() for x in xs]
 
-                for o, x, tx, kc, vc in zip(dp_ops, xs, txs, kcs, vcs):
-                    _ = _und_step(o, x)
-                    _ = _dec_step(o, tx, kc, vc)
-                torch.accelerator.synchronize()
-
-                t0 = time.perf_counter()
                 with concurrent.futures.ThreadPoolExecutor(max_workers=dp_per_host) as pool:
+                    # Warm up inside the worker threads so thread-local TorchDynamo / XLA caches are populated prior to timing
+                    list(pool.map(lambda i: (_und_step(dp_ops[i], xs[i]), _dec_step(dp_ops[i], txs[i], kcs[i], vcs[i])), range(dp_per_host)))
+                    torch.accelerator.synchronize()
+
+                    t0 = time.perf_counter()
 
                     def _run_pre(idx_dp: int) -> torch.Tensor:
                         h = xs[idx_dp]
@@ -575,11 +574,10 @@ def run_child_torchtpu_mot_worker(
                         return h
 
                     list(pool.map(_run_pre, range(dp_per_host)))
-                torch.accelerator.synchronize()
-                ttft_s = (time.perf_counter() - t0) * (n_layers_und / 8.0)
+                    torch.accelerator.synchronize()
+                    ttft_s = (time.perf_counter() - t0) * (n_layers_und / 8.0)
 
-                t1 = time.perf_counter()
-                with concurrent.futures.ThreadPoolExecutor(max_workers=dp_per_host) as pool:
+                    t1 = time.perf_counter()
 
                     def _run_dec(idx_dp: int) -> torch.Tensor:
                         ht = txs[idx_dp]

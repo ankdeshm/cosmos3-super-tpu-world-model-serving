@@ -1,5 +1,10 @@
 # `nvidia/Cosmos3-Super` (64.6B MoT World Model) Serving & Benchmarking on Cloud TPU `v5p` & `v7x` — Slice `v5p-16-wave4-adaptive64k`
 
+> [!IMPORTANT]
+> **Benchmark Scope & Measurement Methodology**
+> - **Stage 1 & Stage 2 TPU Compute (`torchtpu-mot-eager` / `torchtpu-mot-compiled`):** **Local-Shard Layer-Scaled MoT Operator Microbenchmark** (`run_child_torchtpu_mot_worker` in [`scripts/run_cosmos3_super_tpu_bench.py`](../../scripts/run_cosmos3_super_tpu_bench.py)) loading `129 GiB / tp_size` real `nvidia/Cosmos3-Super` `safetensors` shards onto HBM and timing `8` measured World Reasoner layers (`× 8 -> 64L`) plus `6` measured World Generator DiT layers (`× 6 -> 36L`) per host **excluding inter-chip TP `AllReduce` / Ulysses `AllToAll` collectives**. *Archived `torchtpu-mot-compiled` `B=1` note:* In sweeps recorded prior to the worker-thread warmup fix in `scripts/run_cosmos3_super_tpu_bench.py`, `B=1` decode `TPOT` (`483–1,971 ms`) included first-call thread-local `TorchDynamo` compilation inside `ThreadPoolExecutor`, whereas `B=2 / B=4` (`9.96–71.85 ms`) reflects steady-state compiled execution.
+> - **Stage 2 Media Muxing (`POST /encode`):** **100% Real End-to-End HTTP + Multi-Threaded `ffmpeg` (`libx264` + `48 kHz` Stereo `AAC`) Video/Audio Muxing** against `multimodal-cpu-offload-svc:8090` (`c3-standard-44` AVX-512), delivering **`2.39x–3.20x` measured muxing speedup** over TPU host CPUs.
+
 ### Slice `v5p-16-wave4-adaptive64k` (`v5p`, `24` Verified Benchmark Points)
 
 - **Raw Artifacts:** [`results/v5p-16-wave4-adaptive64k/SUMMARY.md`](./SUMMARY.md) · [`results/v5p-16-wave4-adaptive64k/summary.json`](./summary.json) *(updated `2026-11-02T21:14:46.723898+00:00`)*
