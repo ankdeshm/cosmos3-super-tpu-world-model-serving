@@ -12,7 +12,7 @@ nvidia/Cosmos3-Super (64.6B Mixture-of-Transformers Omnimodal World Reasoner & V
 | **Backbone** | Dual-Tower Mixture-of-Transformers (MoT): World Reasoner (`4K / 16K / 64K / 128K` context) + Flow-Matching World Generator |
 | **Output Modalities** | Synchronized World Video (`480p / 720p`) + `48 kHz` Stereo Audio + `29-DoF` Continuous Robot Action Trajectories |
 | **TPU Execution** | `TorchTPU` (`eager` & `torch.compile(..., dynamic=False)`), `BF16` & `FP8_WEIGHT_DYNAMIC` (`out_dtype=bfloat16`), `TP=4` / `TP=8` |
-| **Disaggregated CPU Offload** | `multimodal-cpu-offload-svc` (`c3-standard-44` AVX-512): `POST /encode` H.264 MP4 + `48 kHz` AAC muxing & `POST /preprocess_vision` |
+| **Disaggregated CPU Offload** | `multimodal-cpu-offload-svc` (`c3-standard-44` AVX-512, `HTTP/1.1 Keep-Alive + TCP_NODELAY`): `POST /encode` H.264 MP4 + `48 kHz` AAC muxing & `POST /preprocess_vision` |
 
 ---
 
@@ -36,9 +36,9 @@ Non-TPU media muxing, high-resolution image compression, and multi-camera/multi-
 
 ---
 
-## 4. Before vs. After Disaggregated CPU Offloading & `torch.compile` Optimization
+## 4. Before vs. After Disaggregated CPU Offloading (`Keep-Alive + TCP_NODELAY`) & `torch.compile` Optimization
 
-Direct A/B comparison on `v5p-32` (`TP=4 × DP=8`) comparing **Before** (uncompiled `torchtpu-mot-eager` + synchronous on-host `ffmpeg` muxing) against **After** (`torchtpu-mot-compiled` + disaggregated `c3-standard-44` AVX-512 `multimodal-cpu-offload-svc:8090` muxing):
+Direct A/B comparison across `v5p-32` (`TP=4 × DP=8`) and `v5p-16` (`Wave-3 Keep-Alive`) comparing **Before** (uncompiled `torchtpu-mot-eager` + synchronous on-host `ffmpeg` muxing) against **After** (`torchtpu-mot-compiled` + persistent `HTTP/1.1 Keep-Alive + TCP_NODELAY` disaggregated `c3-standard-44` AVX-512 `multimodal-cpu-offload-svc:8090` muxing):
 
 | Stage & Workload | Before (On-Host CPU / Eager) | After (Disagg AVX-512 CPU + `torch.compile`) | Measured Gain | Code & Result References |
 |---|---:|---:|---:|---|
@@ -46,8 +46,8 @@ Direct A/B comparison on `v5p-32` (`TP=4 × DP=8`) comparing **Before** (uncompi
 | **World Reasoner `16K` (`B=2`) Decode TPOT** | `101.17 ms` (`158.2 tok/s` cluster) | **`37.97 ms`** (**`421.4 tok/s`** cluster) | **`2.66x` faster decode** | [`run_cosmos3_super_tpu_bench.py`](./scripts/run_cosmos3_super_tpu_bench.py) · [`v5p-32/summary.json`](./results/v5p-32/summary.json) |
 | **World Reasoner `64K` (`B=2`) Decode TPOT** | `123.84 ms` (`129.2 tok/s` cluster) | **`70.47 ms`** (**`227.0 tok/s`** cluster) | **`1.76x` faster decode** | [`run_cosmos3_super_tpu_bench.py`](./scripts/run_cosmos3_super_tpu_bench.py) · [`v5p-32/summary.json`](./results/v5p-32/summary.json) |
 | **World Gen `480p 81f` `H.264 + 48kHz AAC` Mux** | `678.4 ms` on-host CPU | **`283.8 ms`** (`355.3 fps` on AVX-512 pod) | **`2.39x` faster mux** (`-394.6 ms`/video) | [`multimodal_cpu_offload_server.py`](./scripts/multimodal_cpu_offload_server.py) · [`v5p-32/summary.json`](./results/v5p-32/summary.json) |
-| **World Gen `720p 81f` `H.264 + 48kHz AAC` Mux** | `1,493.8 ms` on-host CPU | **`605.9 ms`** (`151.7 fps` on AVX-512 pod) | **`2.47x` faster mux** (`-887.9 ms`/video) | [`multimodal_cpu_offload_server.py`](./scripts/multimodal_cpu_offload_server.py) · [`v5p-32/summary.json`](./results/v5p-32/summary.json) |
-| **World Gen `720p 189f` LongHorizon Mux** | `3,152.2 ms` on-host CPU | **`1,161.8 ms`** (`181.2 fps` on AVX-512 pod) | **`2.71x` faster mux** (**`-1.99 s`/video**) | [`cpu_offload_client.py`](./scripts/cpu_offload_client.py) · [`v5p-32/summary.json`](./results/v5p-32/summary.json) |
+| **World Gen `720p 81f` `Keep-Alive + TCP_NODELAY` Mux** | `1,475.6 – 1,493.8 ms` on-host CPU | **`556.1 ms`** (`204.7 fps`, Wave-3 Keep-Alive) | **`2.65x` faster mux** (`-919.5 ms`/video) | [`cpu_offload_client.py`](./scripts/cpu_offload_client.py) · [`v5p-16-wave3-keepalive/summary.json`](./results/v5p-16-wave3-keepalive/summary.json) |
+| **World Gen `720p 189f` LongHorizon `Keep-Alive` Mux** | `3,138.0 – 3,152.2 ms` on-host CPU | **`981.9 ms`** (`253.2 – 262.7 fps`, Wave-3 Keep-Alive) | **`3.20x` faster mux** (**`-2.16 s`/video**) | [`cpu_offload_client.py`](./scripts/cpu_offload_client.py) · [`v5p-16-wave3-keepalive/summary.json`](./results/v5p-16-wave3-keepalive/summary.json) |
 
 ---
 
@@ -92,6 +92,44 @@ Every table below is generated directly from the verified `PASS` records in [`re
 | `torchtpu-mot-compiled` | `T2VS-720p-189f-35step-Default8s` | `1280x720` (`189f`) | `35` | `43,008` | `5,180.30` | `181.310` | `3,137.7` | **`860.9`** | `270.8` | **`182.171`** | **`1.32`** |
 | `torchtpu-mot-compiled` | `ActionFD-AgiBot29D-480p-17f-30step` | `640x480` (`17f`) | `30` | `2,048` | `152.42` | `4.573` | `213.5` | **`121.1`** | `155.6` | **`4.694`** | **`51.13`** |
 | `torchtpu-mot-compiled` | `ActionID-AV9D-480p-61f-30step` | `832x480` (`61f`) | `30` | `6,912` | `622.41` | `18.672` | `548.7` | **`244.8`** | `313.0` | **`18.917`** | **`12.69`** |
+
+### Slice `v5p-16-wave3-keepalive` (`v5p`, `24` Verified Benchmark Points)
+
+- **Raw Artifacts:** [`results/v5p-16-wave3-keepalive/SUMMARY.md`](./results/v5p-16-wave3-keepalive/SUMMARY.md) · [`results/v5p-16-wave3-keepalive/summary.json`](./results/v5p-16-wave3-keepalive/summary.json) *(updated `2026-11-02T20:15:10.266691+00:00`)*
+
+#### Stage 1 — World Reasoner Long-Context Serving (`4K` – `128K`)
+
+| Engine | Precision | `TP × Cluster DP` | Context | Batch | TTFT P50 (s) | TPOT P50 (ms) | Replica Prefill (tok/s) | Cluster Prefill (tok/s) | Cluster Decode (tok/s) |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `4,096` | `1` | `0.714` | **`392.45`** | `5,739.9` | **`22,959.6`** | **`10.20`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `4,096` | `4` | `2.708` | **`77.87`** | `6,050.5` | **`24,202.0`** | **`205.48`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `16,384` | `1` | `2.984` | **`84.98`** | `5,490.9` | **`21,963.6`** | **`47.08`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `16,384` | `2` | `5.579` | **`78.82`** | `5,873.3` | **`23,493.2`** | **`101.48`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `65,536` | `1` | `13.511` | **`67.67`** | `4,850.5` | **`19,402.0`** | **`59.12`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `65,536` | `2` | `26.760` | **`75.28`** | `4,898.1` | **`19,592.4`** | **`106.28`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `131,072` | `1` | `34.704` | **`67.20`** | `3,776.9` | **`15,107.6`** | **`59.52`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `4,096` | `1` | `0.354` | **`699.03`** | `11,586.7` | **`46,346.8`** | **`5.72`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `4,096` | `4` | `1.359` | **`32.66`** | `12,056.5` | **`48,226.0`** | **`489.84`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `16,384` | `1` | `1.630` | **`695.73`** | `10,053.2` | **`40,212.8`** | **`5.76`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `16,384` | `2` | `3.037` | **`38.05`** | `10,789.7` | **`43,158.8`** | **`210.24`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `65,536` | `1` | `8.761` | **`736.95`** | `7,480.7` | **`29,922.8`** | **`5.44`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `65,536` | `2` | `17.784` | **`71.85`** | `7,370.2` | **`29,480.8`** | **`111.36`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=4 × DP=4` | `131,072` | `1` | `25.608` | **`1,949.94`** | `5,118.3` | **`20,473.2`** | **`2.04`** |
+
+#### Stage 2 — World Generator Video + `48 kHz` Stereo Audio + `29-DoF` Action Rollouts
+
+| Engine | Workload Mode | Res & Frames | Steps | Packed Tokens | Step (ms) | TPU Gen (s) | On-Host Mux (ms) | Disagg CPU Mux (ms) | Disagg FPS | E2E Disagg (s) | Cluster Videos/min |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `torchtpu-mot-eager` | `T2V-480p-81f-20step` | `832x480` (`81f`) | `20` | `8,704` | `777.20` | `15.544` | `757.5` | **`304.2`** | `346.1` | **`15.848`** | **`15.14`** |
+| `torchtpu-mot-eager` | `T2VS-720p-81f-35step-StereoAudio` | `1280x720` (`81f`) | `35` | `19,200` | `2,021.54` | `70.754` | `1,506.3` | **`510.7`** | `199.5` | **`71.264`** | **`3.37`** |
+| `torchtpu-mot-eager` | `T2VS-720p-189f-35step-Default8s` | `1280x720` (`189f`) | `35` | `43,008` | `5,833.40` | `204.169` | `3,138.0` | **`981.9`** | `253.2` | **`205.151`** | **`1.17`** |
+| `torchtpu-mot-eager` | `ActionFD-AgiBot29D-480p-17f-30step` | `640x480` (`17f`) | `30` | `2,048` | `192.54` | `5.776` | `214.6` | **`114.1`** | `156.4` | **`5.890`** | **`40.75`** |
+| `torchtpu-mot-eager` | `ActionID-AV9D-480p-61f-30step` | `832x480` (`61f`) | `30` | `6,912` | `610.61` | `18.318` | `559.7` | **`219.4`** | `311.0` | **`18.538`** | **`12.95`** |
+| `torchtpu-mot-compiled` | `T2V-480p-81f-20step` | `832x480` (`81f`) | `20` | `8,704` | `781.79` | `15.636` | `681.0` | **`338.1`** | `343.0` | **`15.974`** | **`15.02`** |
+| `torchtpu-mot-compiled` | `T2VS-720p-81f-35step-StereoAudio` | `1280x720` (`81f`) | `35` | `19,200` | `1,865.79` | `65.303` | `1,475.6` | **`556.0`** | `204.7` | **`65.859`** | **`3.64`** |
+| `torchtpu-mot-compiled` | `T2VS-720p-189f-35step-Default8s` | `1280x720` (`189f`) | `35` | `43,008` | `5,180.48` | `181.317` | `3,126.3` | **`1,033.4`** | `262.7` | **`182.350`** | **`1.32`** |
+| `torchtpu-mot-compiled` | `ActionFD-AgiBot29D-480p-17f-30step` | `640x480` (`17f`) | `30` | `2,048` | `152.79` | `4.584` | `213.4` | **`128.1`** | `155.9` | **`4.712`** | **`50.93`** |
+| `torchtpu-mot-compiled` | `ActionID-AV9D-480p-61f-30step` | `832x480` (`61f`) | `30` | `6,912` | `621.03` | `18.631` | `543.8` | **`235.4`** | `309.1` | **`18.866`** | **`12.72`** |
 
 ### Slice `v5p-32` (`v5p`, `24` Verified Benchmark Points)
 
