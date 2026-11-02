@@ -140,7 +140,6 @@ def try_vllm_reasoner_serving(
     env.update(
         {
             "VLLM_TARGET_DEVICE": "tpu",
-            "VLLM_PLUGINS": "torchtpu,cosmos3",
             "VLLM_RPC_TIMEOUT": "1800000",
             "VLLM_ENGINE_READY_TIMEOUT_S": "1800",
             "TORCH_DIST_TIMEOUT": "1800",
@@ -154,7 +153,6 @@ def try_vllm_reasoner_serving(
         '{"architectures": ["Cosmos3ReasonerForConditionalGeneration"]}',
         "--host=127.0.0.1",
         f"--port={port}",
-        "--attention-backend=CUSTOM",
         f"--tensor-parallel-size={tp_size}",
         f"--data-parallel-size={dp_per_host}",
         "--max-model-len=131072",
@@ -305,6 +303,8 @@ def run_child_torchtpu_mot_worker(
     """Runs inside a clean LD_PRELOAD child process owning all local TPU cores (tpu:0..N-1) in one PJRT client."""
     import torch
     import torch.nn.functional as F
+    from tpu_single_host_setup import _patch_torchtpu_export_multidevice
+    _patch_torchtpu_export_multidevice()
     import torch_tpu  # noqa: F401
     from safetensors import safe_open
 
@@ -312,7 +312,7 @@ def run_child_torchtpu_mot_worker(
         torch._dynamo.config.cache_size_limit = 64
         torch._dynamo.config.suppress_errors = False
 
-    n_devs = torch.tpu.device_count()
+    n_devs = torch.accelerator.device_count()
     devices = [torch.device(f"tpu:{i}") for i in range(n_devs)]
     dp_per_host = max(1, n_devs // tp_size)
 
@@ -350,7 +350,7 @@ def run_child_torchtpu_mot_worker(
                     break
         if all(b >= target_per_core for b in per_dev_bytes[:tp_size]) and sample_2d is not None:
             break
-    torch.tpu.synchronize()
+    torch.accelerator.synchronize()
     load_sec = time.perf_counter() - t_l0
 
     raw_d_model = int(sample_2d.shape[1]) if sample_2d is not None else 5120
@@ -376,7 +376,7 @@ def run_child_torchtpu_mot_worker(
                 if isinstance(pout, tuple):
                     pout = pout[0]
                 _ = pout.sum().item()
-                torch.tpu.synchronize()
+                torch.accelerator.synchronize()
                 scaled_mm_mode = cand_mode
                 break
             except Exception:
@@ -563,7 +563,7 @@ def run_child_torchtpu_mot_worker(
                 for o, x, tx, kc, vc in zip(dp_ops, xs, txs, kcs, vcs):
                     _ = _und_step(o, x)
                     _ = _dec_step(o, tx, kc, vc)
-                torch.tpu.synchronize()
+                torch.accelerator.synchronize()
 
                 t0 = time.perf_counter()
                 with concurrent.futures.ThreadPoolExecutor(max_workers=dp_per_host) as pool:
@@ -575,7 +575,7 @@ def run_child_torchtpu_mot_worker(
                         return h
 
                     list(pool.map(_run_pre, range(dp_per_host)))
-                torch.tpu.synchronize()
+                torch.accelerator.synchronize()
                 ttft_s = (time.perf_counter() - t0) * (n_layers_und / 8.0)
 
                 t1 = time.perf_counter()
@@ -588,7 +588,7 @@ def run_child_torchtpu_mot_worker(
                         return ht
 
                     list(pool.map(_run_dec, range(dp_per_host)))
-                torch.tpu.synchronize()
+                torch.accelerator.synchronize()
                 tpot_ms = ((time.perf_counter() - t1) / 16.0) * n_layers_und * 1000.0
                 e2e_s = ttft_s + (tpot_ms / 1000.0) * 512
 
@@ -617,7 +617,7 @@ def run_child_torchtpu_mot_worker(
                     }
                 )
                 del xs, kcs, vcs, txs
-                torch.tpu.synchronize()
+                torch.accelerator.synchronize()
             except Exception as exc:
                 rows.append(
                     {
@@ -651,7 +651,7 @@ def run_child_torchtpu_mot_worker(
             zs = [torch.randn((2, total_seq, 4096), device=o["dev"], dtype=torch.bfloat16) * 0.02 for o in dp_ops]
             for o, z in zip(dp_ops, zs):
                 _ = _dit_step(o, z)
-            torch.tpu.synchronize()
+            torch.accelerator.synchronize()
 
             t_g0 = time.perf_counter()
             with concurrent.futures.ThreadPoolExecutor(max_workers=dp_per_host) as pool:
@@ -663,7 +663,7 @@ def run_child_torchtpu_mot_worker(
                     return hz
 
                 list(pool.map(_run_gen, range(dp_per_host)))
-            torch.tpu.synchronize()
+            torch.accelerator.synchronize()
             per_step_s = (time.perf_counter() - t_g0) * (n_layers_gen / 6.0)
             total_gen_s = per_step_s * n_steps
 
@@ -716,7 +716,7 @@ def run_child_torchtpu_mot_worker(
                 }
             )
             del zs
-            torch.tpu.synchronize()
+            torch.accelerator.synchronize()
         except Exception as exc:
             rows.append(
                 {
