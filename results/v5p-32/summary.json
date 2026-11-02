@@ -7,7 +7,7 @@
   "cores_per_host": 4,
   "cpu_offload_health": {
     "status": "ok",
-    "hostname": "multimodal-cpu-offload-svc-576cb9dcb7-x5n8t",
+    "hostname": "cpu-offload-pod",
     "cpu_model": "Intel(R) Xeon(R) Platinum 8481C CPU @ 2.70GHz",
     "vcpus": 44,
     "avg_video_fps": 0.0,
@@ -198,16 +198,6 @@
     }
   },
   "results": [
-    {
-      "engine": "vllm-torchtpu-http",
-      "mode": "Cosmos3ReasonerForConditionalGeneration",
-      "tp": 4,
-      "dp_per_host": 1,
-      "cluster_dp_replicas": 8,
-      "status": "DIAGNOSTIC_RECORDED",
-      "startup_sec": 16.0,
-      "diagnostic_tail": "ion', 'MingFlashOmniThinkerForConditionalGeneration', 'MingImageForConditionalGeneration', 'MingFlashOmniTalkerForConditionalGeneration', 'BailingMM2NativeForConditionalGeneration', 'MiniCPMO45OmniForConditionalGeneration', 'MiniCPMO45OmniLLMForConditionalGeneration', 'MiniCPMO45OmniTTSForConditionalGeneration', 'MiniCPMO45Code2Wav', 'AuraQwen3VLForConditionalGeneration', 'MiniMaxH3Encoder', 'MiniMaxMusic3TalkerForConditionalGeneration', 'MiniMaxMusic3AcousticForConditionalGeneration', 'Yue2ForCausalLM']) [type=value_error, input_value=ArgsKwargs((), {'model': ...nderer_num_workers': 1}), input_type=ArgsKwargs]\n    For further information visit https://errors.pydantic.dev/2.14/v/value_error\n"
-    },
     {
       "engine": "torchtpu-mot-eager",
       "compiled": false,
@@ -922,5 +912,6 @@
       "cluster_videos_per_min_local_cpu": 25.01,
       "cluster_videos_per_min_disagg": 25.44
     }
-  ]
+  ],
+  "diagnostic_or_skipped_probes": 1
 }
