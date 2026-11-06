@@ -213,43 +213,89 @@ Every table below is generated directly from the verified `PASS` records in [`re
 | `torchtpu-mot-compiled` | `ActionFD-AgiBot29D-480p-17f-30step` | `640x480` (`17f`) | `30` | `2,048` | `153.05` | `4.592` | `212.1` | **`154.0`** | `153.9` | **`4.746`** | **`101.14`** |
 | `torchtpu-mot-compiled` | `ActionID-AV9D-480p-61f-30step` | `832x480` (`61f`) | `30` | `6,912` | `621.55` | `18.646` | `545.7` | **`222.8`** | `314.5` | **`18.869`** | **`25.44`** |
 
-### Slice `v7x-8` (`v7x`, `24` Verified Benchmark Points)
+### Slice `v7x-spot-4c` (`v7x`, `14` Verified Benchmark Points)
 
-- **Raw Artifacts:** [`results/v7x-8/SUMMARY.md`](./results/v7x-8/SUMMARY.md) · [`results/v7x-8/summary.json`](./results/v7x-8/summary.json) *(updated `2026-11-02T20:01:33.948450+00:00`)*
+- **Raw Artifacts:** [`results/v7x-spot-4c/SUMMARY.md`](./results/v7x-spot-4c/SUMMARY.md) · [`results/v7x-spot-4c/summary.json`](./results/v7x-spot-4c/summary.json) *(updated `2026-11-06T12:44:44.023920+00:00`)*
 
 #### Stage 1 — World Reasoner Long-Context Serving (`4K` – `128K`)
 
 | Engine | Precision | `TP × Cluster DP` | Context | Batch | TTFT P50 (s) | TPOT P50 (ms) | Replica Prefill (tok/s) | Cluster Prefill (tok/s) | Cluster Decode (tok/s) |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `1` | `0.074` | **`267.32`** | `55,723.0` | **`111,446.0`** | **`7.48`** |
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `4` | `0.194` | **`50.66`** | `84,603.4` | **`169,206.8`** | **`157.92`** |
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `1` | `0.309` | **`53.07`** | `53,087.4` | **`106,174.8`** | **`37.68`** |
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `2` | `0.609` | **`49.66`** | `53,817.6` | **`107,635.2`** | **`80.54`** |
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `1` | `2.751` | **`49.08`** | `23,821.1` | **`47,642.2`** | **`40.76`** |
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `2` | `5.831` | **`52.09`** | `22,477.7` | **`44,955.4`** | **`76.78`** |
-| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `131,072` | `1` | `9.684` | **`52.96`** | `13,534.3` | **`27,068.6`** | **`37.76`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `1` | `0.041` | **`483.20`** | `99,307.5` | **`198,615.0`** | **`4.14`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `4` | `0.146` | **`9.96`** | `112,485.1` | **`224,970.2`** | **`803.28`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `1` | `0.237` | **`496.07`** | `69,046.6` | **`138,093.2`** | **`4.04`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `2` | `0.501` | **`13.53`** | `65,438.7` | **`130,877.4`** | **`295.58`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `1` | `2.456` | **`509.65`** | `26,679.7` | **`53,359.4`** | **`3.92`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `2` | `4.994` | **`32.05`** | `26,245.4` | **`52,490.8`** | **`124.82`** |
-| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `131,072` | `1` | `9.002` | **`1,576.43`** | `14,561.0` | **`29,122.0`** | **`1.26`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `4,096` | `1` | `0.073` | **`257.73`** | `56,173.2` | **`56,173.2`** | **`3.88`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `4,096` | `4` | `0.195` | **`34.91`** | `83,867.6` | **`83,867.6`** | **`114.58`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `16,384` | `1` | `0.307` | **`36.42`** | `53,367.2` | **`53,367.2`** | **`27.46`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `16,384` | `2` | `0.609` | **`35.11`** | `53,826.9` | **`53,826.9`** | **`56.97`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `65,536` | `1` | `2.751` | **`39.34`** | `23,825.6` | **`23,825.6`** | **`25.42`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `65,536` | `2` | `5.830` | **`40.91`** | `22,481.2` | **`22,481.2`** | **`48.89`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `131,072` | `1` | `9.684` | **`40.59`** | `13,535.2` | **`13,535.2`** | **`24.64`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `4,096` | `1` | `0.041` | **`488.27`** | `100,054.5` | **`100,054.5`** | **`2.05`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `4,096` | `4` | `0.146` | **`9.48`** | `112,252.9` | **`112,252.9`** | **`421.72`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `16,384` | `1` | `0.236` | **`479.78`** | `69,511.6` | **`69,511.6`** | **`2.08`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `16,384` | `2` | `0.499` | **`12.73`** | `65,663.3` | **`65,663.3`** | **`157.11`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `65,536` | `1` | `2.450` | **`496.91`** | `26,749.2` | **`26,749.2`** | **`2.01`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `65,536` | `2` | `4.985` | **`32.41`** | `26,294.0` | **`26,294.0`** | **`61.71`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=1` | `131,072` | `1` | `8.974` | **`1502.95`** | `14,606.0` | **`14,606.0`** | **`0.67`** |
 
 #### Stage 2 — World Generator Video + `48 kHz` Stereo Audio + `29-DoF` Action Rollouts
 
 | Engine | Workload Mode | Res & Frames | Steps | Packed Tokens | Step (ms) | TPU Gen (s) | On-Host Mux (ms) | Disagg CPU Mux (ms) | Disagg FPS | E2E Disagg (s) | Cluster Videos/min |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `torchtpu-mot-eager` | `T2V-480p-81f-20step` | `832x480` (`81f`) | `20` | `8,704` | `119.73` | `2.395` | `535.7` | **`307.6`** | `342.2` | **`2.702`** | **`44.41`** |
-| `torchtpu-mot-eager` | `T2VS-720p-81f-35step-StereoAudio` | `1280x720` (`81f`) | `35` | `19,200` | `389.57` | `13.635` | `1,135.1` | **`557.4`** | `197.9` | **`14.192`** | **`8.46`** |
-| `torchtpu-mot-eager` | `T2VS-720p-189f-35step-Default8s` | `1280x720` (`189f`) | `35` | `43,008` | `1,774.61` | `62.111` | `2,327.4` | **`995.7`** | `256.0` | **`63.107`** | **`1.90`** |
-| `torchtpu-mot-eager` | `ActionFD-AgiBot29D-480p-17f-30step` | `640x480` (`17f`) | `30` | `2,048` | `29.71` | `0.891` | `160.7` | **`115.2`** | `159.6` | **`1.006`** | **`119.28`** |
-| `torchtpu-mot-eager` | `ActionID-AV9D-480p-61f-30step` | `832x480` (`61f`) | `30` | `6,912` | `100.47` | `3.014` | `414.1` | **`220.6`** | `313.6` | **`3.235`** | **`37.09`** |
-| `torchtpu-mot-compiled` | `T2V-480p-81f-20step` | `832x480` (`81f`) | `20` | `8,704` | `101.93` | `2.039` | `516.3` | **`283.5`** | `351.7` | **`2.322`** | **`51.68`** |
-| `torchtpu-mot-compiled` | `T2VS-720p-81f-35step-StereoAudio` | `1280x720` (`81f`) | `35` | `19,200` | `295.32` | `10.336` | `1,184.3` | **`476.9`** | `203.8` | **`10.813`** | **`11.10`** |
-| `torchtpu-mot-compiled` | `T2VS-720p-189f-35step-Default8s` | `1280x720` (`189f`) | `35` | `43,008` | `1,354.78` | `47.417` | `2,334.7` | **`855.1`** | `274.2` | **`48.273`** | **`2.49`** |
-| `torchtpu-mot-compiled` | `ActionFD-AgiBot29D-480p-17f-30step` | `640x480` (`17f`) | `30` | `2,048` | `19.01` | `0.570` | `161.3` | **`121.1`** | `155.9` | **`0.691`** | **`173.66`** |
-| `torchtpu-mot-compiled` | `ActionID-AV9D-480p-61f-30step` | `832x480` (`61f`) | `30` | `6,912` | `83.01` | `2.490` | `414.6` | **`220.9`** | `313.0` | **`2.711`** | **`44.26`** |
+
+### Slice `v7x-8` (`v7x`, `14` Verified Benchmark Points)
+
+- **Raw Artifacts:** [`results/v7x-8/SUMMARY.md`](./results/v7x-8/SUMMARY.md) · [`results/v7x-8/summary.json`](./results/v7x-8/summary.json) *(updated `2026-11-06T12:52:10.348737+00:00`)*
+
+#### Stage 1 — World Reasoner Long-Context Serving (`4K` – `128K`)
+
+| Engine | Precision | `TP × Cluster DP` | Context | Batch | TTFT P50 (s) | TPOT P50 (ms) | Replica Prefill (tok/s) | Cluster Prefill (tok/s) | Cluster Decode (tok/s) |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `1` | `0.071` | **`257.43`** | `57,635.4` | **`115,270.8`** | **`7.76`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `4` | `0.192` | **`34.91`** | `85,189.0` | **`170,378.0`** | **`229.18`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `1` | `0.306` | **`36.46`** | `53,595.8` | **`107,191.6`** | **`54.84`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `2` | `0.604` | **`40.79`** | `54,230.6` | **`108,461.2`** | **`98.06`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `1` | `2.741` | **`35.72`** | `23,907.7` | **`47,815.4`** | **`56.00`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `2` | `5.815` | **`40.90`** | `22,540.7` | **`45,081.4`** | **`97.78`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `131,072` | `1` | `9.649` | **`50.45`** | `13,584.6` | **`27,169.2`** | **`39.64`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `1` | `0.041` | **`503.77`** | `98,919.6` | **`197,839.2`** | **`3.98`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `4,096` | `4` | `0.144` | **`10.76`** | `113,731.4` | **`227,462.8`** | **`743.22`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `1` | `0.236` | **`498.20`** | `69,563.2` | **`139,126.4`** | **`4.02`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `16,384` | `2` | `0.499` | **`13.32`** | `65,717.4` | **`131,434.8`** | **`300.40`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `1` | `2.441` | **`548.03`** | `26,843.9` | **`53,687.8`** | **`3.64`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `65,536` | `2` | `4.977` | **`31.10`** | `26,337.4` | **`52,674.8`** | **`128.60`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=2` | `131,072` | `1` | `8.946` | **`1602.30`** | `14,651.9` | **`29,303.8`** | **`1.24`** |
+
+#### Stage 2 — World Generator Video + `48 kHz` Stereo Audio + `29-DoF` Action Rollouts
+
+| Engine | Workload Mode | Res & Frames | Steps | Packed Tokens | Step (ms) | TPU Gen (s) | On-Host Mux (ms) | Disagg CPU Mux (ms) | Disagg FPS | E2E Disagg (s) | Cluster Videos/min |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+
+### Slice `v7x-16` (`v7x`, `14` Verified Benchmark Points)
+
+- **Raw Artifacts:** [`results/v7x-16/SUMMARY.md`](./results/v7x-16/SUMMARY.md) · [`results/v7x-16/summary.json`](./results/v7x-16/summary.json) *(updated `2026-11-03T09:29:39.791364+00:00`)*
+
+#### Stage 1 — World Reasoner Long-Context Serving (`4K` – `128K`)
+
+| Engine | Precision | `TP × Cluster DP` | Context | Batch | TTFT P50 (s) | TPOT P50 (ms) | Replica Prefill (tok/s) | Cluster Prefill (tok/s) | Cluster Decode (tok/s) |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `4,096` | `1` | `0.073` | **`258.39`** | `56,020.2` | **`224,080.8`** | **`15.48`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `4,096` | `4` | `0.193` | **`35.26`** | `84,775.4` | **`339,101.6`** | **`453.80`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `16,384` | `1` | `0.307` | **`35.06`** | `53,407.7` | **`213,630.8`** | **`114.08`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `16,384` | `2` | `0.610` | **`38.35`** | `53,742.2` | **`214,968.8`** | **`208.56`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `65,536` | `1` | `2.757` | **`50.90`** | `23,767.6` | **`95,070.4`** | **`78.60`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `65,536` | `2` | `5.835` | **`41.85`** | `22,464.3` | **`89,857.2`** | **`191.16`** |
+| `torchtpu-mot-eager` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `131,072` | `1` | `9.701` | **`41.17`** | `13,511.7` | **`54,046.8`** | **`97.16`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `4,096` | `1` | `0.042` | **`482.58`** | `97,022.7` | **`388,090.8`** | **`8.28`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `4,096` | `4` | `0.146` | **`8.76`** | `112,356.1` | **`449,424.4`** | **`1,827.40`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `16,384` | `1` | `0.237` | **`488.85`** | `69,021.2` | **`276,084.8`** | **`8.20`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `16,384` | `2` | `0.502` | **`14.43`** | `65,317.4` | **`261,269.6`** | **`554.36`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `65,536` | `1` | `2.460` | **`509.85`** | `26,641.4` | **`106,565.6`** | **`7.84`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `65,536` | `2` | `4.992` | **`31.47`** | `26,256.5` | **`105,026.0`** | **`254.24`** |
+| `torchtpu-mot-compiled` | `FP8_WEIGHT_DYNAMIC` | `TP=8 × DP=4` | `131,072` | `1` | `9.015` | **`1580.85`** | `14,539.6` | **`58,158.4`** | **`2.52`** |
+
+#### Stage 2 — World Generator Video + `48 kHz` Stereo Audio + `29-DoF` Action Rollouts
+
+| Engine | Workload Mode | Res & Frames | Steps | Packed Tokens | Step (ms) | TPU Gen (s) | On-Host Mux (ms) | Disagg CPU Mux (ms) | Disagg FPS | E2E Disagg (s) | Cluster Videos/min |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 
 ---
 
